@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "symbols.h"
+#include "attribs.h"
 
 extern FILE *yyin;
 extern int yylex();
@@ -24,7 +25,7 @@ int siginst;
 %token <sval> ID
 %token REAL ENT 
 %token CAR CAD
-%token DOUBLE FLOAT INT CHAR STRING STRUCT FUNC PRINT VOID
+%token DOUBLE FLOAT INT CHAR STRUCT FUNC PRINT VOID
 %token IF SWITCH CASE DEF FOR DO WHILE RETURN BREAK 
 %token TR FLS
 %token PYC SEP DP
@@ -66,7 +67,7 @@ tipo : INT | FLOAT | DOUBLE | CHAR | VOID | STRUCT LKEY decl RKEY;
 
 list_id : list_id SEP ID tipo_arr | ID tipo_arr;
 
-tipo_arr : LKEY ENT RKEY tipo_arr | ;
+tipo_arr : LBRA ENT RBRA tipo_arr | ;
 
 function : FUNC tipo ID LPAR def_param RPAR LKEY decl sent RKEY function | ;
 
@@ -76,8 +77,9 @@ list_param : list_param SEP tipo ID param_arr %prec SEPX | tipo ID param_arr %pr
 
 param_arr : LBRA RBRA param_arr | ;
 
-sent :   sent sent  
-		| ID ASIG exp PYC
+sent : senti ;
+senti : senti sentii | sentii ;
+sentii :  ids ASIG exp PYC
         | IF LPAR cond RPAR sent %prec IFX
         | IF LPAR cond RPAR sent ELSE sent
 		| SWITCH LPAR exp RPAR LKEY casos pred RKEY
@@ -86,7 +88,6 @@ sent :   sent sent
 		| FOR LPAR ids ASIG exp PYC cond PYC ids ASIG exp RPAR sent
         | WHILE LPAR cond RPAR sent
 		| DO LKEY sent RKEY WHILE LPAR cond RPAR PYC
-		| ids ASIG exp PYC
 		| RETURN exp PYC
 		| RETURN PYC
         | BREAK PYC;
@@ -97,7 +98,7 @@ pred : DEF DP sent | ;
 
 ids : ID | arr | ID PUNTO ID;
 
-arr : ID LKEY exp RKEY %prec ARRX | arr LKEY exp RKEY %prec ARRX;
+arr : ID LBRA exp RBRA %prec ARRX | arr LBRA exp RBRA %prec ARRX;
 
 exp :  exp ADD exp 
         | exp SUB exp
